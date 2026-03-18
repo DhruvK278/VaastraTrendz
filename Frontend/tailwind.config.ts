@@ -22,8 +22,18 @@ const config: Config = {
       fontFamily: {
         bourbon: ['"Bourbon Street"', 'cursive'],
         italian: ['Italiana', 'serif'],
+        cormorant: ['Cormorant Garamond', 'serif'],
+        jost: ['Jost', 'sans-serif'],
       },
       colors: {
+        gold: {
+          DEFAULT: '#C9A96E',
+          light: '#E8C98A',
+        },
+        ivory: '#F5F0E8',
+        charcoal: '#0A0A0A',
+        surface: '#161616',
+        'surface-2': '#1E1E1E',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
