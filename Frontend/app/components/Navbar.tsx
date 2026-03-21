@@ -76,7 +76,7 @@ export default function Navbar() {
 
       {/* Center: Nav Links */}
       <div className={`absolute left-1/2 -translate-x-1/2 hidden md:flex gap-12 ${isMobile ? "!flex flex-col absolute top-full left-0 w-full bg-[#080808] border-b border-[#C9A96E]/15 p-8 translate-x-0 items-center justify-center gap-8 z-40" : ""}`}>
-        {["Home", "About", "Help", "Contact"].map((label) => (
+        {["Home", "About", "Help", "Support", "Contact"].map((label) => (
           <Link
             key={label}
             href={label === "Home" ? "/" : `/${label.toLowerCase()}`}
