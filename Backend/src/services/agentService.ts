@@ -1,4 +1,5 @@
 import { ChromaClient } from 'chromadb';
+import { pipeline } from '@xenova/transformers';
 
 const client = new ChromaClient({ path: process.env.CHROMA_URL || 'http://localhost:8000' });
 
@@ -43,28 +44,20 @@ You will only provide a JSON response with the resolution, resolution descriptio
 }
 `;
 
-async function getTogetherEmbedding(text: string): Promise<number[]> {
-  const url = 'https://api.together.xyz/v1/embeddings';
-  const options = {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'togethercomputer/m2-bert-80M-32k-retrieval',
-      input: text,
-    }),
-  };
-  const res = await fetch(url, options);
-  const json = await res.json();
-  return json.data[0].embedding;
+let embeddingPipeline: any = null;
+
+async function getLocalEmbedding(text: string): Promise<number[]> {
+  if (!embeddingPipeline) {
+    // This runs completely locally!
+    embeddingPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+  }
+  const result = await embeddingPipeline(text, { pooling: 'mean', normalize: true });
+  return Array.from(result.data);
 }
 
-const togetherEmbeddingFunction = {
+const localEmbeddingFunction = {
   generate: async (texts: string[]): Promise<number[][]> => {
-    return await Promise.all(texts.map((text) => getTogetherEmbedding(text)));
+    return await Promise.all(texts.map((text) => getLocalEmbedding(text)));
   },
 };
 
@@ -81,12 +74,12 @@ interface AgentResponse {
 
 export async function getAgentResponse(data: AgentInput): Promise<AgentResponse> {
   // 1. Generate embedding for the incoming complaint
-  const queryEmbedding = await getTogetherEmbedding(data.description);
+  const queryEmbedding = await getLocalEmbedding(data.description);
 
   // 2. Query ChromaDB for relevant policy chunks
   const collection = await client.getOrCreateCollection({
     name: process.env.CHROMA_COLLECTION_NAME || 'support-policies',
-    embeddingFunction: togetherEmbeddingFunction,
+    embeddingFunction: localEmbeddingFunction,
   });
 
   const queryResponse = await collection.query({
@@ -103,14 +96,14 @@ Use the following VaastraTrendz company policy to inform your decision. You must
 ${retrievedContext}
 `;
 
-  // 4. Call Together AI Llama 3.1
-  const url = 'https://api.together.xyz/v1/chat/completions';
+  // 4. Call Groq API (Running LLaMA 3 locally-like speeds)
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
   const options = {
     method: 'POST',
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
-      authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+      authorization: `Bearer ${process.env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
       messages: [
@@ -120,14 +113,18 @@ ${retrievedContext}
           content: ` issue : ${data.issue} , description : ${data.description} `,
         },
       ],
-      model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+      model: 'llama-3.1-8b-instant',
+      response_format: { type: "json_object" }
     }),
   };
 
   const response = await fetch(url, options);
   const json = await response.json();
+  if (json.error) {
+    throw new Error(`Groq API Error: ${JSON.stringify(json.error)}`);
+  }
   console.log('Agent response:', json.choices[0].message.content);
   return JSON.parse(json.choices[0].message.content);
 }
 
-export { getTogetherEmbedding, togetherEmbeddingFunction };
+export { getLocalEmbedding, localEmbeddingFunction };

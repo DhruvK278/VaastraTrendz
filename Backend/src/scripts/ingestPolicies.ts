@@ -3,7 +3,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { ChromaClient } from 'chromadb';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { getTogetherEmbedding, togetherEmbeddingFunction } from '../services/agentService';
+import { getLocalEmbedding, localEmbeddingFunction } from '../services/agentService';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
@@ -21,7 +21,7 @@ async function ingest() {
 
   const collection = await client.getOrCreateCollection({
     name: process.env.CHROMA_COLLECTION_NAME || 'support-policies',
-    embeddingFunction: togetherEmbeddingFunction,
+    embeddingFunction: localEmbeddingFunction,
   });
 
   const ids: string[] = [];
@@ -32,7 +32,7 @@ async function ingest() {
   console.log(`Generating embeddings for ${chunks.length} chunks...`);
   for (let i = 0; i < chunks.length; i++) {
     const chunkText = chunks[i].pageContent;
-    const embedding = await getTogetherEmbedding(chunkText);
+    const embedding = await getLocalEmbedding(chunkText);
 
     ids.push(`chunk-${i}`);
     embeddings.push(embedding);

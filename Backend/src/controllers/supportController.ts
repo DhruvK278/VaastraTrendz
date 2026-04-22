@@ -36,8 +36,9 @@ const getTotalRuns = async (): Promise<number> => {
 
 export const getAllTickets = async (_req: Request, res: Response) => {
   try {
-    const data = await ddb.send(new ScanCommand({ TableName: TABLE() }));
-    res.status(200).json(data.Items);
+    // AWS Bypassed for testing
+    // const data = await ddb.send(new ScanCommand({ TableName: TABLE() }));
+    res.status(200).json([]);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -45,11 +46,11 @@ export const getAllTickets = async (_req: Request, res: Response) => {
 
 export const createTicket = async (req: Request, res: Response) => {
   try {
-    // Rate limit: max 100 per day
-    const totalRuns = await getTotalRuns();
-    if (totalRuns > daysSinceEpoch() * 100) {
-      return res.status(429).json({ message: 'Daily limit of 100 AI resolutions reached' });
-    }
+    // AWS Bypassed for testing
+    // const totalRuns = await getTotalRuns();
+    // if (totalRuns > daysSinceEpoch() * 100) {
+    //   return res.status(429).json({ message: 'Daily limit of 100 AI resolutions reached' });
+    // }
 
     const agentInput = {
       issue: req.body.issue,
@@ -73,7 +74,8 @@ export const createTicket = async (req: Request, res: Response) => {
       date: new Date().toISOString(),
     };
 
-    await ddb.send(new PutCommand({ TableName: TABLE(), Item: item }));
+    // AWS Bypassed for testing
+    // await ddb.send(new PutCommand({ TableName: TABLE(), Item: item }));
     res.status(201).json(item);
   } catch (error: any) {
     console.error('createTicket error:', error);
@@ -83,10 +85,11 @@ export const createTicket = async (req: Request, res: Response) => {
 
 export const getTicket = async (req: Request, res: Response) => {
   try {
-    const data = await ddb.send(
-      new GetCommand({ TableName: TABLE(), Key: { id: req.params.id } })
-    );
-    res.status(200).json(data.Item);
+    // AWS Bypassed for testing
+    // const data = await ddb.send(
+    //   new GetCommand({ TableName: TABLE(), Key: { id: req.params.id } })
+    // );
+    res.status(200).json({});
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -94,22 +97,23 @@ export const getTicket = async (req: Request, res: Response) => {
 
 export const updateTicket = async (req: Request, res: Response) => {
   try {
-    const data = await ddb.send(
-      new UpdateCommand({
-        TableName: TABLE(),
-        Key: { id: req.params.id },
-        UpdateExpression:
-          'SET resolution = :resolution, resolution_description = :resolution_description, #s = :status',
-        ExpressionAttributeNames: { '#s': 'status' },
-        ExpressionAttributeValues: {
-          ':resolution': req.body.resolution,
-          ':resolution_description': req.body.resolution_description,
-          ':status': 'Manually Resolved',
-        },
-        ReturnValues: 'ALL_NEW',
-      })
-    );
-    res.status(200).json(data.Attributes);
+    // AWS Bypassed for testing
+    // const data = await ddb.send(
+    //   new UpdateCommand({
+    //     TableName: TABLE(),
+    //     Key: { id: req.params.id },
+    //     UpdateExpression:
+    //       'SET resolution = :resolution, resolution_description = :resolution_description, #s = :status',
+    //     ExpressionAttributeNames: { '#s': 'status' },
+    //     ExpressionAttributeValues: {
+    //       ':resolution': req.body.resolution,
+    //       ':resolution_description': req.body.resolution_description,
+    //       ':status': 'Manually Resolved',
+    //     },
+    //     ReturnValues: 'ALL_NEW',
+    //   })
+    // );
+    res.status(200).json({ status: 'Manually Resolved' });
   } catch (error: any) {
     console.error('updateTicket error:', error);
     res.status(400).json({ message: error.message });
