@@ -83,5 +83,9 @@ This approach spins up the frontend, backend, PostgreSQL database, and ChromaDB 
 - **`/Frontend`**: Contains the Next.js application, React components, styling, and client-side UI logic.
 - **`/Backend`**: Houses the Express server, Prisma schema (`prisma/schema.prisma`), database connections, e-commerce APIs, and the AI agent infrastructure.
 
+## Project Architecture
+<img width="2816" height="1536" alt="vaastratrendz architecture" src="https://github.com/user-attachments/assets/6be281eb-0830-462b-a37b-b79264068767" />
+
+
 ## 📝 Background
 The project focuses on modern web design principles and seamless AI integration to provide a high-end customer experience, combining traditional e-commerce paradigms with advanced AI assistance.
