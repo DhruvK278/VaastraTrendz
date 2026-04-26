@@ -9,7 +9,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { getAgentResponse } from '../services/agentService';
 
-// ── DynamoDB client ──────────────────────────────────────
+// DynamoDB client
 const ddbClient = new DynamoDBClient({
   region: process.env.AWS_REGION_1 || 'us-east-1',
   credentials: {
@@ -21,7 +21,7 @@ const ddbClient = new DynamoDBClient({
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 const TABLE = () => process.env.DYNAMODB_TABLE_NAME || 'support-tickets';
 
-// ── Rate-limit helper ────────────────────────────────────
+// Rate-limit helper
 const daysSinceEpoch = (): number => {
   const start = new Date('2021-09-14');
   return Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -32,8 +32,7 @@ const getTotalRuns = async (): Promise<number> => {
   return data.Items?.length ?? 0;
 };
 
-// ── Controllers ──────────────────────────────────────────
-
+// Controllers
 export const getAllTickets = async (_req: Request, res: Response) => {
   try {
     // AWS Bypassed for testing

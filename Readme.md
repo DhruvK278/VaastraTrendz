@@ -32,6 +32,28 @@ VaastraTrendz is a full-stack, premium online clothing platform featuring a dark
 
 ### Installation
 
+#### Option A: Run Locally via Docker (Recommended)
+This approach spins up the frontend, backend, PostgreSQL database, and ChromaDB automatically in isolated containers.
+
+1. **Ensure Docker Desktop is installed and running.**
+2. **Setup Environment Variables:**
+   Copy `Backend/.env` to the root folder:
+   ```bash
+   cp Backend/.env .env
+   ```
+3. **Build and Start Containers:**
+   ```bash
+   docker-compose up -d --build
+   ```
+   *Note: Your Next.js app will be available on `http://localhost:3000` and the Backend API on `http://localhost:3001`.*
+
+4. **Stop the environment:**
+   ```bash
+   docker-compose down
+   ```
+
+#### Option B: Manual Setup (Without Docker)
+
 1. **Backend Setup:**
    ```bash
    cd Backend

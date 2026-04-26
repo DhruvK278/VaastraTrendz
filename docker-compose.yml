@@ -1,0 +1,60 @@
+services:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: vaastratrendz-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # If you deploy to a remote server, you may need to update NEXT_PUBLIC_API_URL 
+      # or change the hardcoded localhost in the frontend code to point to your server's IP
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: vaastratrendz-backend
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      # The backend will connect to the local postgres container
+      - DATABASE_URL=postgresql://user:password@db:5432/vaastratrendz?schema=public
+      - PORT=3001
+      # Local Vector DB
+      - CHROMA_URL=http://chromadb:8000
+      # Pass your other .env variables here (Groq API Key, etc.)
+      # - GROQ_API_KEY=your_key_here
+    depends_on:
+      - db
+      - chromadb
+
+  db:
+    image: postgres:15
+    container_name: vaastratrendz-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vaastratrendz
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: vaastratrendz-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+volumes:
+  postgres_data:
+  chroma_data:
