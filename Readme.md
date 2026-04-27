@@ -1,12 +1,14 @@
 # VaastraTrendz
 
+**Live URL:** [https://vaastra-trendz.vercel.app/](https://vaastra-trendz.vercel.app/)
+
 VaastraTrendz is a full-stack, premium online clothing platform featuring a dark luxury design theme with gold accents. Originally conceptualized as an AI Virtual Try-on project, it has evolved into a fully-fledged e-commerce store with an integrated, intelligent AI customer support agent.
 
 ## ✨ Features
 
 - **Premium Interface:** A visually stunning, high-fashion editorial aesthetic featuring dark themes, gold accents, and fluid micro-animations.
 - **E-commerce Capabilities:** Complete shopping experience including product grids, detail pages, cart calculations, and a seamless checkout process tailored for Cash on Delivery (COD) orders.
-- **AI Customer Support Agent:** A smart virtual assistant built directly into the unified backend, capable of understanding store policies, assisting with user queries, and providing top-tier customer service using Vector Search (ChromaDB) and LangChain.
+- **AI Customer Support Agent:** A smart virtual assistant built directly into the unified backend, capable of understanding store policies, assisting with user queries, and providing top-tier customer service using Vector Search (Pinecone), Local Embeddings (Transformers.js), Groq API, and LangChain.
 - **Robust Backend:** A single, cohesive Node.js/Express backend powering both e-commerce operations (PostgreSQL/Prisma) and the AI agent's context and logic.
 
 ## 🛠️ Technology Stack
@@ -21,7 +23,7 @@ VaastraTrendz is a full-stack, premium online clothing platform featuring a dark
 - **Framework:** Node.js, Express
 - **Language:** TypeScript
 - **Database & ORM:** PostgreSQL, Prisma
-- **AI & Vector Search:** ChromaDB, AWS DynamoDB, LangChain Text Splitters
+- **AI & Vector Search:** Pinecone, AWS DynamoDB, Transformers.js (Local Embeddings), Groq API, LangChain Text Splitters
 
 ## 🚀 Getting Started
 
@@ -33,7 +35,7 @@ VaastraTrendz is a full-stack, premium online clothing platform featuring a dark
 ### Installation
 
 #### Option A: Run Locally via Docker (Recommended)
-This approach spins up the frontend, backend, PostgreSQL database, and ChromaDB automatically in isolated containers.
+This approach spins up the frontend, backend, and PostgreSQL database automatically in isolated containers.
 
 1. **Ensure Docker Desktop is installed and running.**
 2. **Setup Environment Variables:**
