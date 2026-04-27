@@ -1,7 +1,9 @@
-import { ChromaClient } from 'chromadb';
+import { Pinecone } from '@pinecone-database/pinecone';
 import { pipeline } from '@xenova/transformers';
 
-const client = new ChromaClient({ path: process.env.CHROMA_URL || 'http://localhost:8000' });
+const pc = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY || '',
+});
 
 const baseSystemPrompt = `
 You are a helpful customer support executive working with VaastraTrendz, a premium online clothing and fashion e-commerce brand. You manage customer complaints on a regular basis and provide resolutions for clothing-related issues.
@@ -76,18 +78,18 @@ export async function getAgentResponse(data: AgentInput): Promise<AgentResponse>
   // 1. Generate embedding for the incoming complaint
   const queryEmbedding = await getLocalEmbedding(data.description);
 
-  // 2. Query ChromaDB for relevant policy chunks
-  const collection = await client.getOrCreateCollection({
-    name: process.env.CHROMA_COLLECTION_NAME || 'support-policies',
-    embeddingFunction: localEmbeddingFunction,
+  // 2. Query Pinecone for relevant policy chunks
+  const index = pc.Index(process.env.PINECONE_INDEX_NAME || 'support-policies');
+  
+  const queryResponse = await index.query({
+    vector: queryEmbedding,
+    topK: 3,
+    includeMetadata: true,
   });
 
-  const queryResponse = await collection.query({
-    queryEmbeddings: [queryEmbedding],
-    nResults: 3,
-  });
-
-  const retrievedContext = queryResponse.documents[0].join('\n\n');
+  const retrievedContext = queryResponse.matches
+    .map(match => match.metadata?.text || '')
+    .join('\n\n');
 
   // 3. Augment the system prompt with retrieved policy context
   const augmentedSystemPrompt = `${baseSystemPrompt}
