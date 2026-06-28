@@ -18,6 +18,13 @@ import {
   MessageSquare,
   Clock,
   Filter,
+  Search,
+  RefreshCw,
+  Gift,
+  MailCheck,
+  Package,
+  Zap,
+  Hash,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:3001/api/support";
@@ -45,15 +52,23 @@ const resolutionOptions = [
   "Service Enhancement",
 ];
 
+interface ActionExecuted {
+  tool: string;
+  input: Record<string, any>;
+  output: string;
+}
+
 interface TicketData {
   id: string;
   customer_name: string;
   customer_email: string;
   issue: string;
   issue_description: string;
+  order_id?: string;
   resolution: string;
   resolution_description: string;
   confidence_score: number;
+  actions_executed?: ActionExecuted[];
   status: string;
   date: string;
 }
@@ -104,6 +119,7 @@ export default function SupportPage() {
     customer_email: "",
     issue: "",
     issue_description: "",
+    order_id: "",
   });
 
   // result after submit
@@ -287,10 +303,64 @@ export default function SupportPage() {
                   </div>
                 </div>
 
+                {/* ── Action Execution Timeline ── */}
+                {result.actions_executed && result.actions_executed.length > 0 && (
+                  <div className="border border-[#C9A96E]/15 rounded-lg p-5 mb-5" style={{ background: "rgba(201,169,110,0.02)" }}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Zap className="w-4 h-4 text-[#C9A96E]" />
+                      <span className="text-[#C9A96E] text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "'Jost', sans-serif" }}>
+                        Agent Actions Executed
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0">
+                      {result.actions_executed.map((action: ActionExecuted, idx: number) => {
+                        const iconMap: Record<string, any> = {
+                          lookup_order: Search,
+                          process_refund: RefreshCw,
+                          initiate_replacement: Package,
+                          issue_discount: Gift,
+                          send_apology_email: MailCheck,
+                        };
+                        const IconComp = iconMap[action.tool] || Zap;
+                        let parsedOutput: any = {};
+                        try { parsedOutput = JSON.parse(action.output); } catch { parsedOutput = { details: action.output }; }
+                        const isSuccess = parsedOutput.success !== false;
+                        return (
+                          <div key={idx} className="relative pl-7">
+                            {/* Vertical connector line */}
+                            {idx < (result.actions_executed?.length ?? 0) - 1 && (
+                              <div className="absolute left-[11px] top-6 w-px h-full bg-[#C9A96E]/20" />
+                            )}
+                            {/* Icon dot */}
+                            <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center border ${
+                              isSuccess
+                                ? "bg-[#C9A96E]/10 border-[#C9A96E]/30 text-[#C9A96E]"
+                                : "bg-rose-400/10 border-rose-400/30 text-rose-400"
+                            }`}>
+                              <IconComp className="w-3 h-3" />
+                            </div>
+                            <div className="pb-4">
+                              <p className="text-[#F5F0E8] text-xs font-semibold" style={{ fontFamily: "'Jost', sans-serif" }}>
+                                {action.tool.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                              </p>
+                              <p className="text-[#666] text-[11px] mt-0.5 font-mono">
+                                {Object.entries(action.input).map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`).join(", ")}
+                              </p>
+                              <p className={`text-xs mt-1 ${isSuccess ? "text-emerald-400" : "text-rose-400"}`} style={{ fontFamily: "'Jost', sans-serif" }}>
+                                {isSuccess ? "✓" : "✗"} {parsedOutput.details || parsedOutput.error || action.output}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={() => {
                     setResult(null);
-                    setForm({ customer_name: "", customer_email: "", issue: "", issue_description: "" });
+                    setForm({ customer_name: "", customer_email: "", issue: "", issue_description: "", order_id: "" });
                   }}
                   className="btn-gold w-full text-center"
                 >
@@ -357,6 +427,23 @@ export default function SupportPage() {
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555] pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[#888] text-xs tracking-wide uppercase" style={{ fontFamily: "'Jost', sans-serif" }}>
+                    Order ID <span className="text-[#555] normal-case">(optional)</span>
+                  </label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#555]" />
+                    <input
+                      type="text"
+                      value={form.order_id}
+                      onChange={(e) => setForm({ ...form, order_id: e.target.value })}
+                      placeholder="e.g. ORD-a1b2c3d4"
+                      className="w-full bg-[#111] border border-[#C9A96E]/15 rounded pl-9 pr-4 py-2.5 text-sm text-[#F5F0E8] placeholder-[#444] focus:outline-none focus:border-[#C9A96E]/50 transition-colors"
+                      style={{ fontFamily: "'Jost', sans-serif" }}
+                    />
                   </div>
                 </div>
 

@@ -54,6 +54,9 @@ export const createTicket = async (req: Request, res: Response) => {
     const agentInput = {
       issue: req.body.issue,
       description: req.body.issue_description,
+      orderId: req.body.order_id,
+      customerName: req.body.customer_name,
+      customerEmail: req.body.customer_email,
     };
 
     const agentResult = await getAgentResponse(agentInput);
@@ -66,9 +69,11 @@ export const createTicket = async (req: Request, res: Response) => {
       customer_email: req.body.customer_email,
       issue: req.body.issue,
       issue_description: req.body.issue_description,
+      order_id: req.body.order_id || null,
       resolution: agentResult.resolution,
       resolution_description: agentResult.resolution_description,
       confidence_score: agentResult.confidence_score,
+      actions_executed: agentResult.actions_executed,
       status,
       date: new Date().toISOString(),
     };
