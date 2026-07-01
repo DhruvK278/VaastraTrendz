@@ -5,12 +5,14 @@ import {
   getTicket,
   updateTicket,
 } from '../controllers/supportController';
+import { aiRateLimiter, generalRateLimiter } from '../middleware/rateLimiter';
+import { requireApiKey } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/list', getAllTickets);
-router.post('/create', createTicket);
-router.get('/run/:id', getTicket);
-router.put('/update/:id', updateTicket);
+router.get('/list', generalRateLimiter, getAllTickets);
+router.post('/create', aiRateLimiter, createTicket);
+router.get('/run/:id', generalRateLimiter, getTicket);
+router.put('/update/:id', requireApiKey, updateTicket);
 
 export default router;

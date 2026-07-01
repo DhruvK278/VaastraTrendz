@@ -7,7 +7,9 @@ import {
   GetCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { randomUUID } from 'crypto';
 import { getAgentResponse } from '../services/agentService';
+import { CreateTicketSchema, UpdateTicketSchema } from '../middleware/validate';
 
 // DynamoDB client
 const ddbClient = new DynamoDBClient({
@@ -45,6 +47,16 @@ export const getAllTickets = async (_req: Request, res: Response) => {
 
 export const createTicket = async (req: Request, res: Response) => {
   try {
+    // ── INPUT VALIDATION (Fix #2) ──────────────────────────
+    const parseResult = CreateTicketSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map(
+        (i) => `${i.path.join('.')}: ${i.message}`
+      );
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+    const validated = parseResult.data;
+
     // AWS Bypassed for testing
     // const totalRuns = await getTotalRuns();
     // if (totalRuns > daysSinceEpoch() * 100) {
@@ -52,11 +64,11 @@ export const createTicket = async (req: Request, res: Response) => {
     // }
 
     const agentInput = {
-      issue: req.body.issue,
-      description: req.body.issue_description,
-      orderId: req.body.order_id,
-      customerName: req.body.customer_name,
-      customerEmail: req.body.customer_email,
+      issue: validated.issue,
+      description: validated.issue_description,
+      orderId: validated.order_id || undefined,
+      customerName: validated.customer_name,
+      customerEmail: validated.customer_email,
     };
 
     const agentResult = await getAgentResponse(agentInput);
@@ -64,12 +76,12 @@ export const createTicket = async (req: Request, res: Response) => {
     const status = agentResult.confidence_score >= 80 ? 'Auto-Resolved' : 'Pending Review';
 
     const item = {
-      id: Math.floor(Math.random() * 10000).toString(),
-      customer_name: req.body.customer_name,
-      customer_email: req.body.customer_email,
-      issue: req.body.issue,
-      issue_description: req.body.issue_description,
-      order_id: req.body.order_id || null,
+      id: randomUUID(),
+      customer_name: validated.customer_name,
+      customer_email: validated.customer_email,
+      issue: validated.issue,
+      issue_description: validated.issue_description,
+      order_id: validated.order_id || null,
       resolution: agentResult.resolution,
       resolution_description: agentResult.resolution_description,
       confidence_score: agentResult.confidence_score,
@@ -101,6 +113,16 @@ export const getTicket = async (req: Request, res: Response) => {
 
 export const updateTicket = async (req: Request, res: Response) => {
   try {
+    // INPUT VALIDATION
+    const parseResult = UpdateTicketSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map(
+        (i) => `${i.path.join('.')}: ${i.message}`
+      );
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+    const validated = parseResult.data;
+
     // AWS Bypassed for testing
     // const data = await ddb.send(
     //   new UpdateCommand({
@@ -110,8 +132,8 @@ export const updateTicket = async (req: Request, res: Response) => {
     //       'SET resolution = :resolution, resolution_description = :resolution_description, #s = :status',
     //     ExpressionAttributeNames: { '#s': 'status' },
     //     ExpressionAttributeValues: {
-    //       ':resolution': req.body.resolution,
-    //       ':resolution_description': req.body.resolution_description,
+    //       ':resolution': validated.resolution,
+    //       ':resolution_description': validated.resolution_description,
     //       ':status': 'Manually Resolved',
     //     },
     //     ReturnValues: 'ALL_NEW',

@@ -99,11 +99,21 @@ interface AgentResponse {
   actions_executed: ActionExecuted[];
 }
 
-// Adversarial detection (preserved)
-const ADV_REGEX = /(?:\b)(ignore|override|bypass|system prompt|forget|disregard|instruction|drop table|admin|sudo)(?:\b)/i;
+// Adversarial detection
+const ADV_REGEX = /(?:\b)(ignore|override|bypass|system prompt|forget|disregard|instruction|drop table|admin|sudo|jailbreak|pretend|roleplay|act as|new persona|you are now)(?:\b)/i;
+
+function normalizeForDetection(text: string): string {
+  return text
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s]+/g, ' ')
+    .toLowerCase();
+}
 
 function containsAdversarialIntent(text: string): boolean {
-  return ADV_REGEX.test(text);
+  const normalized = normalizeForDetection(text);
+  return ADV_REGEX.test(normalized);
 }
 
 // Initialize LangChain components
@@ -111,6 +121,7 @@ const model = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
   model: 'llama-3.1-8b-instant',
   temperature: 0,
+  maxTokens: 1024,
 });
 
 // Create the ReAct agent — handles the entire reasoning loop
@@ -190,17 +201,31 @@ Customer Name: ${data.customerName || 'Not provided'}
 Customer Email: ${data.customerEmail || 'Not provided'}
 </${delimiter}>`;
 
-  const result = await agent.invoke(
-    {
-      messages: [
-        new SystemMessage(augmentedSystemPrompt),
-        new HumanMessage(userContent),
-      ],
-    },
-    {
-      recursionLimit: 8,
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let result;
+  try {
+    result = await agent.invoke(
+      {
+        messages: [
+          new SystemMessage(augmentedSystemPrompt),
+          new HumanMessage(userContent),
+        ],
+      },
+      {
+        recursionLimit: 8,
+        signal: controller.signal,
+      }
+    );
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new Error('Agent timed out after 30 seconds');
     }
-  );
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const actionsExecuted = extractToolCalls(result.messages);
 

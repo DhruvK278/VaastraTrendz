@@ -1,1 +1,24 @@
+# Environment files 
 .env
+.env.local
+.env.*.local
+
+# Keep the example template
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/*.db
