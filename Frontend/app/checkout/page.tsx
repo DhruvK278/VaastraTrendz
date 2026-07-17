@@ -45,7 +45,8 @@ export default function CheckoutPage() {
     const items = Object.values(orderItemsRecord);
 
     try {
-      const response = await fetch("http://localhost:3001/api/orders", {
+      const API_URL = (typeof window !== "undefined" && window.location.hostname === "localhost") ? "http://localhost:3001/api/orders" : "https://vaastratrendz-backend.onrender.com/api/orders";
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

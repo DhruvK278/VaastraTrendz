@@ -27,7 +27,7 @@ import {
   Hash,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:3001/api/support";
+const API_BASE = (typeof window !== "undefined" && window.location.hostname === "localhost") ? "http://localhost:3001/api/support" : "https://vaastratrendz-backend.onrender.com/api/support";
 
 const issueCategories = [
   "Sizing & Fit Issues",
