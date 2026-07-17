@@ -27,7 +27,7 @@ import {
   Hash,
 } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/support` : "http://localhost:3001/api/support";
+const API_BASE = "http://localhost:3001/api/support";
 
 const issueCategories = [
   "Sizing & Fit Issues",
