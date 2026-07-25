@@ -62,5 +62,27 @@ export const UpdateTicketSchema = z.object({
     .trim(),
 });
 
+// Zod schema for chat messages
+export const ChatMessageSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().min(1).max(2000),
+      })
+    )
+    .min(1, 'At least one message is required')
+    .max(50, 'Too many messages in history'),
+
+  customerContext: z
+    .object({
+      name: z.string().max(100).optional(),
+      email: z.string().email().max(254).optional(),
+      orderId: z.string().max(100).optional(),
+    })
+    .optional(),
+});
+
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>;
 export type UpdateTicketInput = z.infer<typeof UpdateTicketSchema>;
+export type ChatMessageInput = z.infer<typeof ChatMessageSchema>;

@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { CartProvider } from './context/CartContext';
+import ChatWidget from './components/ChatWidget';
 
 export const metadata: Metadata = {
   title: 'VaastraTrendz — Luxury Fashion',
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          {children}
+          <ChatWidget />
+        </CartProvider>
       </body>
     </html>
   );

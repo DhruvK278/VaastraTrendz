@@ -8,8 +8,8 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { randomUUID } from 'crypto';
-import { getAgentResponse } from '../services/agentService';
-import { CreateTicketSchema, UpdateTicketSchema } from '../middleware/validate';
+import { getAgentResponse, getChatResponse } from '../services/agentService';
+import { CreateTicketSchema, UpdateTicketSchema, ChatMessageSchema } from '../middleware/validate';
 
 // DynamoDB client
 const ddbClient = new DynamoDBClient({
@@ -142,6 +142,29 @@ export const updateTicket = async (req: Request, res: Response) => {
     res.status(200).json({ status: 'Manually Resolved' });
   } catch (error: any) {
     console.error('updateTicket error:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const chatWithAgent = async (req: Request, res: Response) => {
+  try {
+    const parseResult = ChatMessageSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map(
+        (i) => `${i.path.join('.')}: ${i.message}`
+      );
+      return res.status(400).json({ message: 'Validation failed', errors });
+    }
+    const validated = parseResult.data;
+
+    const chatResult = await getChatResponse({
+      messages: validated.messages,
+      customerContext: validated.customerContext,
+    });
+
+    res.status(200).json(chatResult);
+  } catch (error: any) {
+    console.error('chatWithAgent error:', error);
     res.status(400).json({ message: error.message });
   }
 };
